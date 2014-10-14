@@ -22,7 +22,7 @@ module ActiveFile
    def save
       @new_record = false
   
-      File.open("db/revistas/#{@id}.yml") do |file|
+      File.open("db/revistas/#{@id}.yml", "w+") do |file|
          file.puts serialize
       end
    end
