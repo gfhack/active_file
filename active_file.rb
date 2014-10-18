@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module ActiveFile
    class Field
       attr_reader :name, :required, :default
@@ -22,7 +24,7 @@ module ActiveFile
    def save
       @new_record = false
   
-      File.open("db/revistas/#{@id}.yml", "w+") do |file|
+      File.open("db/#{self.class.name.downcase}/#{@id}.yml", "w+") do |file|
          file.puts serialize
       end
    end
@@ -30,7 +32,7 @@ module ActiveFile
    def destroy
       unless @destroyed or @new_record
          @destroyed = true
-         FileUtils.rm "db/revistas/#{@id}.yml"
+         FileUtils.rm "db/#{self.class.name.downcase}/#{@id}.yml"
       end
    end
 
@@ -40,14 +42,15 @@ module ActiveFile
       def find(id)
          raise DocumentNotFound,
             "Arquivo db/revistas/#{@id}.yml não encontrado.", caller
-         unless File.exists?("db/revistas/#{@id}.yml")
+         unless File.exists?("db/#{self.class.name.downcase}/#{@id}.yml")
          end
 
-         YAML.load File.open("db/revistas/#{@id}", "r")
+         YAML.load File.open("db/#{self.class.name.downcase}/#{@id}", "r")
       end
 
       def next_id
-         Dir.glob("db/revistas/*.yml").size + 1
+         time = Time.now
+	 time.hash
       end
 
       def field(name, required: false, default: "")
@@ -64,6 +67,39 @@ module ActiveFile
                #{@fields.map(&:to_assign).join("\n")}
             end
          $
+      end
+
+      def method_missing(name, *args, &block)
+         super unless name.to_s =~ /^find_by_(.*)/
+	
+	 argument = args.first
+         field = name.to_s.split("_").last
+         
+         super if @fields.include? field
+	 
+         load_all.select do |object|
+	    should_select? object, field, argument
+	 end
+      end
+      
+      private
+      
+      def should_select?(object, field, argument)
+          if argument.kind_of? Regexp
+	     object.send(field) =~ argument
+	  else		
+	     object.send(field) == argument
+	  end
+      end
+      
+      def load_all
+         Dir.glob("db/#{self.name.downcase}/*.yml").map do |file|
+	     deserialize file
+         end
+      end
+
+      def deserialize(file)
+         YAML.load File.open(file, "r")
       end
    end
 
