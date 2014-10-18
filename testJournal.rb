@@ -1,23 +1,32 @@
 require 'minitest/autorun'
+require File.expand_path("shop")
 
-class TestJournal < MiniTest::Unit::TestCase
+class TestJournal < MiniTest::Test
  def setup
-    @journal = Journal.new title: "Teste Unitário"
+    @journal = Journal.new title: "PHP"
  end
 
- def testTitle
-    assert_equal "Teste Unitário", @journal.title
+ def test_title
+    assert_equal "PHP", @journal.title
  end
 
- def testDefaultValue
-    skip "test later"
+ def test_default
+    assert_equal 10.00, @journal.value
  end
 
- def testSave
-    skip "test later"
+ def test_new
+    assert_equal true, @journal.new_record
  end
 
- def testDestroy
-    skip "test later"
+ def test_save
+    @journal.save
+    assert_equal false, @journal.new_record
+    @journal.destroy
+ end
+
+ def test_destroy
+    @journal.save
+    @journal.destroy
+    assert_equal true, @journal.destroyed
  end
 end

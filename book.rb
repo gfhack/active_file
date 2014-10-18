@@ -1,21 +1,10 @@
 class Book
-   attr_accessor :isbn, :pages, :value, :category, :author
-   attr_reader :title
+   include ActiveFile
 
-   def initialize(author, title, isbn = "1", pages, value, category)
-      @author = author
-      @isbn = isbn
-      @pages = pages
-      @value = value
-      @category = category
-      @title = title
-   end
-   
-   def hash
-      @isbn.hash
-   end
-
-   def eql?(other)
-      @isbn == other.isbn
-   end
+   field :title, required: true
+   field :pages, required: true
+   field :isbn, required: true
+   field :category, required: true
+   field :value, default: 40.00
+   field :author, required: true
 end
